@@ -459,6 +459,12 @@ nautilus_toolbar_constructed (GObject *obj)
 
 	gtk_header_bar_pack_end (GTK_HEADER_BAR (toolbar), box);
 
+	/* selection mode */
+	/* TODO show only in single click mode */
+	button = toolbar_create_toolbutton (self, FALSE, TRUE, NAUTILUS_ACTION_SELECTION_MODE, NULL);
+	gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
+	gtk_header_bar_pack_end (GTK_HEADER_BAR (toolbar), button);
+
 	/* search */
 	button = toolbar_create_toolbutton (self, FALSE, TRUE, NAUTILUS_ACTION_SEARCH, NULL);
 	gtk_widget_set_valign (button, GTK_ALIGN_CENTER);

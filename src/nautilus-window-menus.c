@@ -484,6 +484,11 @@ static const GtkToggleActionEntry main_toggle_entries[] = {
   /* tooltip */              N_("Search documents and folders by name"),
 			     G_CALLBACK (action_show_hide_search_callback),
   /* is_active */            FALSE },
+  /* name, stock id */     { NAUTILUS_ACTION_SELECTION_MODE, "object-select-symbolic",
+  /* label, accelerator */   N_("_Selection mode"), "<control>s",
+  /* tooltip */              N_("Select files and folders"),
+			     G_CALLBACK (action_show_hide_search_callback), // TODO
+  /* is_active */            FALSE },
 };
 
 static const GtkRadioActionEntry view_radio_entries[] = {
