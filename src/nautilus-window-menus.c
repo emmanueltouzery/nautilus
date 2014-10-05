@@ -340,8 +340,20 @@ action_toggle_selection_mode (GtkAction *action,
 	gboolean active;
 	GtkWidget *header_bar;
 	GtkStyleContext *header_style_context;
+	NautilusWindowSlot *slot;
+	NautilusView *view;
+	NautilusCanvasView *canvas_view;
+	NautilusCanvasContainer *canvas_container;
 
 	active = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action));
+
+	slot = nautilus_window_get_active_slot (window);
+	view = nautilus_window_slot_get_view (slot);
+	if (NAUTILUS_IS_CANVAS_VIEW (view)) {
+		canvas_view = NAUTILUS_CANVAS_VIEW (view);
+		canvas_container = nautilus_canvas_view_get_canvas_container (canvas_view);
+		nautilus_canvas_container_set_selection_mode (canvas_container, active);
+	} /* TODO list view */
 
 	header_bar = GTK_WIDGET (window->details->toolbar);
 	header_style_context = gtk_widget_get_style_context (header_bar);

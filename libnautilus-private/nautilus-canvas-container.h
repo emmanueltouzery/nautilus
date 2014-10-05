@@ -290,6 +290,9 @@ void              nautilus_canvas_container_show_stretch_handles          (Nauti
 void              nautilus_canvas_container_unstretch                     (NautilusCanvasContainer  *container);
 void              nautilus_canvas_container_start_renaming_selected_item  (NautilusCanvasContainer  *container,
 									   gboolean                select_all);
+void              nautilus_canvas_container_set_selection_mode            (NautilusCanvasContainer  *container,
+		                                                           gboolean                selection_mode);
+gboolean          nautilus_canvas_container_get_selection_mode            (NautilusCanvasContainer *container);
 
 /* options */
 NautilusZoomLevel nautilus_canvas_container_get_zoom_level                (NautilusCanvasContainer  *view);

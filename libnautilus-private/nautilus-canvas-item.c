@@ -1295,11 +1295,14 @@ nautilus_canvas_item_draw (EelCanvasItem *item,
 	draw_label_text (canvas_item, cr, icon_rect);
 
 	if (in_single_click_mode()) {
-		gtk_style_context_save (context);
-		gtk_style_context_add_class (context, GTK_STYLE_CLASS_CHECK);
-		gtk_style_context_set_state (context, GTK_STATE_FLAG_CHECKED);
-		gtk_render_check(context, cr, icon_rect.x0, icon_rect.y0, 16, 16);
-		gtk_style_context_restore (context);
+		container = NAUTILUS_CANVAS_CONTAINER (EEL_CANVAS_ITEM (item)->canvas);
+		if (nautilus_canvas_container_get_selection_mode (container)) {
+			gtk_style_context_save (context);
+			gtk_style_context_add_class (context, GTK_STYLE_CLASS_CHECK);
+			gtk_style_context_set_state (context, GTK_STATE_FLAG_CHECKED);
+			gtk_render_check(context, cr, icon_rect.x0, icon_rect.y0, 16, 16);
+			gtk_style_context_restore (context);
+		}
 	}
 
 	gtk_style_context_restore (context);

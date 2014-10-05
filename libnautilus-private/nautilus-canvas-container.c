@@ -6354,6 +6354,19 @@ nautilus_canvas_container_set_zoom_level (NautilusCanvasContainer *container, in
 	nautilus_canvas_container_request_update_all_internal (container, TRUE);
 }
 
+void
+nautilus_canvas_container_set_selection_mode (NautilusCanvasContainer *container, gboolean selection_mode)
+{
+	container->details->selection_mode = selection_mode;
+	/* TODO must notify the canvas items */
+}
+
+gboolean
+nautilus_canvas_container_get_selection_mode (NautilusCanvasContainer *container)
+{
+	return container->details->selection_mode;
+}
+
 /**
  * nautilus_canvas_container_request_update_all:
  * For each icon, synchronizes the displayed information (image, text) with the
