@@ -334,6 +334,25 @@ action_show_hide_search_callback (GtkAction *action,
 }
 
 static void
+action_toggle_selection_mode (GtkAction *action,
+				  NautilusWindow *window)
+{
+	gboolean active;
+	GtkWidget *header_bar;
+	GtkStyleContext *header_style_context;
+
+	active = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action));
+
+	header_bar = GTK_WIDGET (window->details->toolbar);
+	header_style_context = gtk_widget_get_style_context (header_bar);
+	if (active) {
+		gtk_style_context_add_class (header_style_context, "selection-mode");
+	} else {
+		gtk_style_context_remove_class (header_style_context, "selection-mode");
+	}
+}
+
+static void
 action_prompt_for_location_slash_callback (GtkAction *action,
 					   NautilusWindow *window)
 {
@@ -487,7 +506,7 @@ static const GtkToggleActionEntry main_toggle_entries[] = {
   /* name, stock id */     { NAUTILUS_ACTION_SELECTION_MODE, "object-select-symbolic",
   /* label, accelerator */   N_("_Selection mode"), "<control>s",
   /* tooltip */              N_("Select files and folders"),
-			     G_CALLBACK (action_show_hide_search_callback), // TODO
+			     G_CALLBACK (action_toggle_selection_mode),
   /* is_active */            FALSE },
 };
 
