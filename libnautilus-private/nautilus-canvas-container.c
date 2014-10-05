@@ -6358,7 +6358,8 @@ void
 nautilus_canvas_container_set_selection_mode (NautilusCanvasContainer *container, gboolean selection_mode)
 {
 	container->details->selection_mode = selection_mode;
-	/* TODO must notify the canvas items */
+	/* force refresh because of the checkboxes that we add or remove, for selection */
+	gtk_widget_queue_draw (GTK_WIDGET (container));
 }
 
 gboolean
