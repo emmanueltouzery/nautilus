@@ -431,9 +431,12 @@ icon_toggle_selected (NautilusCanvasContainer *container,
 		container->details->selection = g_list_remove (container->details->selection, icon->data);
 	}
 
-	eel_canvas_item_set (EEL_CANVAS_ITEM (icon->item),
-			     "highlighted_for_selection", (gboolean) icon->is_selected,
-			     NULL);
+	/* in selection_mode we don't highlight but we use checkboxes instead */
+	if (!container->details->selection_mode) {
+		eel_canvas_item_set (EEL_CANVAS_ITEM (icon->item),
+				     "highlighted_for_selection", (gboolean) icon->is_selected,
+				     NULL);
+	}
 
 	/* If the icon is deselected, then get rid of the stretch handles.
 	 * No harm in doing the same if the item is newly selected.
