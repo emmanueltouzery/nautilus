@@ -6362,6 +6362,9 @@ void
 nautilus_canvas_container_set_selection_mode (NautilusCanvasContainer *container, gboolean selection_mode)
 {
 	container->details->selection_mode = selection_mode;
+	/* in single click mode, the selection makes sense only when in selection mode.
+	 * clear the selection when going in or out of the selection mode. */
+	nautilus_canvas_container_unselect_all (container);
 	/* force refresh because of the checkboxes that we add or remove, for selection */
 	gtk_widget_queue_draw (GTK_WIDGET (container));
 }
