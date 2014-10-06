@@ -4095,18 +4095,22 @@ nautilus_canvas_container_did_not_drag (NautilusCanvasContainer *container,
 		    event->time - details->button_down_time < MAX_CLICK_TIME &&
 		    ! button_event_modifies_selection (event)) {
 			
-			/* It's a tricky UI issue whether this should activate
-			 * just the clicked item (as if it were a link), or all
-			 * the selected items (as if you were issuing an "activate
-			 * selection" command). For now, we're trying the activate
-			 * entire selection version to see how it feels. Note that
-			 * NautilusList goes the other way because its "links" seem
-			 * much more link-like.
-			 */
-			if (event->button == MIDDLE_BUTTON) {
-				activate_selected_items_alternate (container, NULL);
+			if (details->selection_mode) {
+				printf("select or not!\n");
 			} else {
-				activate_selected_items (container);
+				/* It's a tricky UI issue whether this should activate
+				 * just the clicked item (as if it were a link), or all
+				 * the selected items (as if you were issuing an "activate
+				 * selection" command). For now, we're trying the activate
+				 * entire selection version to see how it feels. Note that
+				 * NautilusList goes the other way because its "links" seem
+				 * much more link-like.
+				 */
+				if (event->button == MIDDLE_BUTTON) {
+					activate_selected_items_alternate (container, NULL);
+				} else {
+					activate_selected_items (container);
+				}
 			}
 		}
 	}
