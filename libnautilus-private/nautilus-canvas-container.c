@@ -2000,9 +2000,10 @@ reload_icon_positions (NautilusCanvasContainer *container)
 /* Container-level icon handling functions.  */
 
 static gboolean
-button_event_modifies_selection (GdkEventButton *event)
+button_event_modifies_selection (NautilusCanvasContainer *container, GdkEventButton *event)
 {
-	return (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) != 0;
+	return (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) != 0
+		|| container->details->selection_mode;
 }
 
 /* invalidate the cached label sizes for all the icons */
@@ -3991,7 +3992,7 @@ button_press_event (GtkWidget *widget,
 	
 	/* Button 1 does rubber banding. */
 	if (event->button == RUBBERBAND_BUTTON) {
-		if (! button_event_modifies_selection (event)) {
+		if (! button_event_modifies_selection (container, event)) {
 			selection_changed = unselect_all (container);
 			if (selection_changed) {
 				g_signal_emit (container,
@@ -4052,7 +4053,7 @@ nautilus_canvas_container_did_not_drag (NautilusCanvasContainer *container,
 	if (details->icon_selected_on_button_down &&
 	    ((event->state & GDK_CONTROL_MASK) != 0 ||
 	     (event->state & GDK_SHIFT_MASK) == 0)) {
-		if (button_event_modifies_selection (event)) {
+		if (button_event_modifies_selection (container, event)) {
 			details->range_selection_base_icon = NULL;
 			icon_toggle_selected (container, details->drag_icon);
 			g_signal_emit (container,
@@ -4090,10 +4091,9 @@ nautilus_canvas_container_did_not_drag (NautilusCanvasContainer *container,
 		 * the selection or pressing for a very long time, or double clicking.
 		 */
 
-		
 		if (click_count == 0 &&
 		    event->time - details->button_down_time < MAX_CLICK_TIME &&
-		    ! button_event_modifies_selection (event)) {
+		    ! button_event_modifies_selection (container, event)) {
 			
 			if (details->selection_mode) {
 				printf("select or not!\n");
@@ -5299,7 +5299,7 @@ handle_canvas_double_click (NautilusCanvasContainer *container,
 	    clicked_within_double_click_interval (container) &&
 	    details->double_click_icon[0] == details->double_click_icon[1] &&
 	    details->double_click_button[0] == details->double_click_button[1]) {
-		if (!button_event_modifies_selection (event)) {
+		if (!button_event_modifies_selection (container, event)) {
 			activate_selected_items (container);
 			return TRUE;
 		} else if ((event->state & GDK_CONTROL_MASK) == 0 &&
@@ -5399,7 +5399,7 @@ handle_canvas_button_press (NautilusCanvasContainer *container,
 		}
 	} else if (!details->icon_selected_on_button_down) {
 		details->range_selection_base_icon = icon;
-		if (button_event_modifies_selection (event)) {
+		if (button_event_modifies_selection (container, event)) {
 			icon_toggle_selected (container, icon);
 			g_signal_emit (container,
 				       signals[SELECTION_CHANGED], 0);
