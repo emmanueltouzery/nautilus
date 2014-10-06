@@ -436,6 +436,8 @@ icon_toggle_selected (NautilusCanvasContainer *container,
 		eel_canvas_item_set (EEL_CANVAS_ITEM (icon->item),
 				     "highlighted_for_selection", (gboolean) icon->is_selected,
 				     NULL);
+	} else {
+		eel_canvas_item_request_redraw (icon->item);
 	}
 
 	/* If the icon is deselected, then get rid of the stretch handles.
@@ -4098,9 +4100,7 @@ nautilus_canvas_container_did_not_drag (NautilusCanvasContainer *container,
 		    event->time - details->button_down_time < MAX_CLICK_TIME &&
 		    ! button_event_modifies_selection (container, event)) {
 			
-			if (details->selection_mode) {
-				printf("select or not!\n");
-			} else {
+			if (!details->selection_mode) {
 				/* It's a tricky UI issue whether this should activate
 				 * just the clicked item (as if it were a link), or all
 				 * the selected items (as if you were issuing an "activate
