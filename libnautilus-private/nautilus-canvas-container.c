@@ -3994,7 +3994,7 @@ button_press_event (GtkWidget *widget,
 	}
 	
 	/* Button 1 does rubber banding. */
-	if (event->button == RUBBERBAND_BUTTON) {
+	if (event->button == RUBBERBAND_BUTTON && !container->details->single_click_mode) {
 		if (! button_event_modifies_selection (container, event)) {
 			selection_changed = unselect_all (container);
 			if (selection_changed) {
