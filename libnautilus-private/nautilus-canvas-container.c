@@ -3315,7 +3315,11 @@ keyboard_move_to (NautilusCanvasContainer *container,
 		clear_keyboard_rubberband_start (container);
 		
 		container->details->range_selection_base_icon = icon;
-		if (select_one_unselect_others (container, icon)) {
+		if (container->details->selection_mode) {
+			set_keyboard_focus (container, icon);
+			emit_atk_focus_tracker_notify (icon);
+			reveal_icon (container, icon);
+		} else if (select_one_unselect_others (container, icon)) {
 			g_signal_emit (container,
 				       signals[SELECTION_CHANGED], 0);
 		}
@@ -3630,12 +3634,37 @@ keyboard_up (NautilusCanvasContainer *container,
 			    closest_in_90_degrees);
 }
 
+static void toggle_cur_icon_selection (NautilusCanvasContainer *container)
+{
+	NautilusCanvasIcon *icon;
+	
+	if (container->details->keyboard_focus != NULL) {
+		icon_toggle_selected (container, container->details->keyboard_focus);
+		g_signal_emit (container, signals[SELECTION_CHANGED], 0);
+		if  (container->details->keyboard_focus->is_selected) {
+			container->details->range_selection_base_icon = container->details->keyboard_focus;
+		} 
+	} else {
+		icon = find_best_selected_icon (container,
+						    NULL,
+						    leftmost_in_top_row,
+						    NULL);
+		if (icon == NULL) {
+			icon = find_best_icon (container,
+						   NULL,
+						   leftmost_in_top_row,
+						   NULL);
+		}
+		if (icon != NULL) {
+			set_keyboard_focus (container, icon);
+		}
+	}
+}
+
 static void
 keyboard_space (NautilusCanvasContainer *container,
 		GdkEventKey *event)
 {
-	NautilusCanvasIcon *icon;
-	
 	if (!has_selection (container) &&
 	    container->details->keyboard_focus != NULL) {
 		keyboard_move_to (container,
@@ -3644,27 +3673,7 @@ keyboard_space (NautilusCanvasContainer *container,
 	} else if ((event->state & GDK_CONTROL_MASK) != 0 &&
 		   (event->state & GDK_SHIFT_MASK) == 0) {
 		/* Control-space toggles the selection state of the current icon. */
-		if (container->details->keyboard_focus != NULL) {
-			icon_toggle_selected (container, container->details->keyboard_focus);
-			g_signal_emit (container, signals[SELECTION_CHANGED], 0);
-			if  (container->details->keyboard_focus->is_selected) {
-				container->details->range_selection_base_icon = container->details->keyboard_focus;
-			} 
-		} else {
-			icon = find_best_selected_icon (container,
-							    NULL,
-							    leftmost_in_top_row,
-							    NULL);
-			if (icon == NULL) {
-				icon = find_best_icon (container,
-							   NULL,
-							   leftmost_in_top_row,
-							   NULL);
-			}
-			if (icon != NULL) {
-				set_keyboard_focus (container, icon);
-			}
-		}
+		toggle_cur_icon_selection (container);
 	} else if ((event->state & GDK_SHIFT_MASK) != 0) {
 		activate_selected_items_alternate (container, NULL);
 	} else {
@@ -4597,7 +4606,9 @@ key_press_event (GtkWidget *widget,
 			break;
 		case GDK_KEY_Return:
 		case GDK_KEY_KP_Enter:
-			if ((event->state & GDK_SHIFT_MASK) != 0) {
+			if (container->details->selection_mode) {
+				toggle_cur_icon_selection (container);
+			} else if ((event->state & GDK_SHIFT_MASK) != 0) {
 				activate_selected_items_alternate (container, NULL);
 			} else {
 				activate_selected_items (container);
