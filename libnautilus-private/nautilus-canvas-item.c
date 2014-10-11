@@ -51,6 +51,8 @@
 
 #define MAX_TEXT_WIDTH_STANDARD 135
 
+#define SELECTION_MODE_CHECKBOX_SIZE 16
+
 /* special text height handling
  * each item has three text height variables:
  *  + text_height: actual height of the displayed (i.e. on-screen) PangoLayout.
@@ -1303,7 +1305,11 @@ nautilus_canvas_item_draw (EelCanvasItem *item,
 		if (canvas_icon->is_selected) {
 			gtk_style_context_set_state (context, GTK_STATE_FLAG_CHECKED);
 		}
-		gtk_render_check(context, cr, icon_rect.x0, icon_rect.y0, 16, 16);
+		gtk_render_check(context, cr,
+			icon_rect.x1-SELECTION_MODE_CHECKBOX_SIZE, 
+			icon_rect.y1-SELECTION_MODE_CHECKBOX_SIZE,
+			SELECTION_MODE_CHECKBOX_SIZE,
+			SELECTION_MODE_CHECKBOX_SIZE);
 		gtk_style_context_restore (context);
 	}
 
