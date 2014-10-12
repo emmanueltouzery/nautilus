@@ -1526,32 +1526,11 @@ column_header_menu_use_default (GtkMenuItem *menu_item,
 	g_strfreev (default_order);
 }
 
-static gboolean
-column_header_clicked (GtkWidget *column_button,
-                       GdkEventButton *event,
-                       NautilusListView *list_view)
+static GHashTable *
+get_visible_columns_hash (NautilusListView *list_view, char **visible_columns)
 {
-	NautilusFile *file;
-	char **visible_columns;
-	char **column_order;
-	GList *all_columns;
-	GHashTable *visible_columns_hash;
 	int i;
-	GList *l;
-	GtkWidget *menu;
-	GtkWidget *menu_item;
-
-	if (event->button != GDK_BUTTON_SECONDARY) {
-		return FALSE;
-	}
-
-	file = nautilus_view_get_directory_as_file (NAUTILUS_VIEW (list_view));
-
-	visible_columns = get_visible_columns (list_view);
-	column_order = get_column_order (list_view);
-
-	all_columns = nautilus_get_columns_for_file (file);
-	all_columns = nautilus_sort_columns (all_columns, column_order);
+	GHashTable *visible_columns_hash;
 
 	/* hash table to lookup if a given column should be visible */
 	visible_columns_hash = g_hash_table_new_full (g_str_hash,
@@ -1570,6 +1549,36 @@ column_header_clicked (GtkWidget *column_button,
 			                     g_ascii_strdown (visible_columns[i], -1));
 		}
 	}
+	return visible_columns_hash;
+}
+
+static gboolean
+column_header_clicked (GtkWidget *column_button,
+                       GdkEventButton *event,
+                       NautilusListView *list_view)
+{
+	NautilusFile *file;
+	char **visible_columns;
+	char **column_order;
+	GList *all_columns;
+	GHashTable *visible_columns_hash;
+	GList *l;
+	GtkWidget *menu;
+	GtkWidget *menu_item;
+
+	if (event->button != GDK_BUTTON_SECONDARY) {
+		return FALSE;
+	}
+
+	file = nautilus_view_get_directory_as_file (NAUTILUS_VIEW (list_view));
+
+	visible_columns = get_visible_columns (list_view);
+	column_order = get_column_order (list_view);
+
+	all_columns = nautilus_get_columns_for_file (file);
+	all_columns = nautilus_sort_columns (all_columns, column_order);
+
+	visible_columns_hash = get_visible_columns_hash (list_view, visible_columns);
 
 	menu = gtk_menu_new ();
 
@@ -1645,7 +1654,6 @@ apply_columns_settings (NautilusListView *list_view,
 	GHashTable *visible_columns_hash;
 	GtkTreeViewColumn *prev_view_column;
 	GList *l;
-	int i;
 
 	file = nautilus_view_get_directory_as_file (NAUTILUS_VIEW (list_view));
 
@@ -1655,24 +1663,7 @@ apply_columns_settings (NautilusListView *list_view,
 	all_columns = nautilus_get_columns_for_file (file);
 	all_columns = nautilus_sort_columns (all_columns, column_order);
 
-	/* hash table to lookup if a given column should be visible */
-	visible_columns_hash = g_hash_table_new_full (g_str_hash,
-						      g_str_equal,
-						      (GDestroyNotify) g_free,
-						      (GDestroyNotify) g_free);
-	if (nautilus_view_get_selection_mode (NAUTILUS_VIEW (list_view))) {
-		g_hash_table_insert (visible_columns_hash, g_strdup ("selected"), g_strdup ("selected"));
-	}
-
-	/* always show name column */
-	g_hash_table_insert (visible_columns_hash, g_strdup ("name"), g_strdup ("name"));
-	if (visible_columns != NULL) {
-		for (i = 0; visible_columns[i] != NULL; ++i) {
-			g_hash_table_insert (visible_columns_hash,
-					     g_ascii_strdown (visible_columns[i], -1),
-					     g_ascii_strdown (visible_columns[i], -1));
-		}
-	}
+	visible_columns_hash = get_visible_columns_hash (list_view, visible_columns);
 
 	for (l = all_columns; l != NULL; l = l->next) {
 		char *name;
