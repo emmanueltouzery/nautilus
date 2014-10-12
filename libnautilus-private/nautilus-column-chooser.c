@@ -427,7 +427,7 @@ populate_tree (NautilusColumnChooser *chooser)
 			      "name", &name, "label", &label,
 			      NULL);
 
-		if (strcmp (name, "name") == 0) {
+		if (strcmp (name, "name") == 0 || strcmp (name, "selected") == 0) {
 			visible = TRUE;
 			sensitive = FALSE;
 		}
@@ -484,7 +484,8 @@ set_visible_columns (NautilusColumnChooser *chooser,
 	int i;
 
 	visible_columns_hash = g_hash_table_new (g_str_hash, g_str_equal);
-	/* always show the name column */
+	/* always show the selected & name column */
+	g_hash_table_insert (visible_columns_hash, "selected", "selected");
 	g_hash_table_insert (visible_columns_hash, "name", "name");
 	for (i = 0; visible_columns[i] != NULL; ++i) {
 		g_hash_table_insert (visible_columns_hash,

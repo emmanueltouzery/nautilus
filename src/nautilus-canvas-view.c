@@ -1976,6 +1976,28 @@ canvas_view_scroll_to_file (NautilusView *view,
 	}
 }
 
+static void
+canvas_view_set_selection_mode (NautilusView *view, gboolean selection_mode)
+{
+	NautilusCanvasContainer *canvas_container;
+	NautilusCanvasView *canvas_view;
+
+	canvas_view = NAUTILUS_CANVAS_VIEW (view);
+	canvas_container = get_canvas_container (canvas_view);
+	nautilus_canvas_container_set_selection_mode (canvas_container, selection_mode);
+}
+
+static gboolean
+canvas_view_get_selection_mode (NautilusView *view)
+{
+	NautilusCanvasContainer *canvas_container;
+	NautilusCanvasView *canvas_view;
+
+	canvas_view = NAUTILUS_CANVAS_VIEW (view);
+	canvas_container = get_canvas_container (canvas_view);
+	return nautilus_canvas_container_get_selection_mode (canvas_container);
+}
+
 static const char *
 nautilus_canvas_view_get_id (NautilusView *view)
 {
@@ -2086,6 +2108,8 @@ nautilus_canvas_view_class_init (NautilusCanvasViewClass *klass)
 	nautilus_view_class->get_view_id = nautilus_canvas_view_get_id;
 	nautilus_view_class->get_first_visible_file = canvas_view_get_first_visible_file;
 	nautilus_view_class->scroll_to_file = canvas_view_scroll_to_file;
+	nautilus_view_class->set_selection_mode = canvas_view_set_selection_mode;
+	nautilus_view_class->get_selection_mode = canvas_view_get_selection_mode;
 
 	properties[PROP_SUPPORTS_AUTO_LAYOUT] =
 		g_param_spec_boolean ("supports-auto-layout",

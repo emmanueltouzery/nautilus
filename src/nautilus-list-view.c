@@ -90,6 +90,7 @@ struct NautilusListViewDetails {
 	gboolean row_selected_on_button_down;
 	gboolean menus_ready;
 	gboolean active;
+	gboolean selection_mode;
 	
 	GHashTable *columns;
 	GtkWidget *column_editor;
@@ -151,19 +152,19 @@ static char **get_default_column_order                           (NautilusListVi
 G_DEFINE_TYPE (NautilusListView, nautilus_list_view, NAUTILUS_TYPE_VIEW);
 
 static const char * default_search_visible_columns[] = {
-	"name", "size", "type", "where", NULL
+	"selected", "name", "size", "type", "where", NULL
 };
 
 static const char * default_search_columns_order[] = {
-	"name", "size", "type", "where", NULL
+	"selected", "name", "size", "type", "where", NULL
 };
 
 static const char * default_trash_visible_columns[] = {
-	"name", "size", "type", "trashed_on", "trash_orig_path", NULL
+	"selected", "name", "size", "type", "trashed_on", "trash_orig_path", NULL
 };
 
 static const char * default_trash_columns_order[] = {
-	"name", "size", "type", "trashed_on", "trash_orig_path", NULL
+	"selected", "name", "size", "type", "trashed_on", "trash_orig_path", NULL
 };
 
 static const gchar*
@@ -173,6 +174,7 @@ get_default_sort_order (NautilusFile *file, gboolean *reversed)
 	gboolean default_sort_reversed;
 	const gchar *retval;
 	const char *attributes[] = {
+		"selected",
 		"name", /* is really "manually" which doesn't apply to lists */
 		"name",
 		"size",
@@ -1556,6 +1558,9 @@ column_header_clicked (GtkWidget *column_button,
 	                                              g_str_equal,
 	                                              (GDestroyNotify) g_free,
 	                                              (GDestroyNotify) g_free);
+	if (nautilus_view_get_selection_mode (NAUTILUS_VIEW (list_view))) {
+		g_hash_table_insert (visible_columns_hash, g_strdup ("selected"), g_strdup ("selected"));
+	}
 	/* always show name column */
 	g_hash_table_insert (visible_columns_hash, g_strdup ("name"), g_strdup ("name"));
 	if (visible_columns != NULL) {
@@ -1585,8 +1590,8 @@ column_header_clicked (GtkWidget *column_button,
 		g_object_set_data_full (G_OBJECT (menu_item),
 		                        "column-name", name, g_free);
 
-		/* name is always visible */
-		if (strcmp (lowercase, "name") == 0) {
+		/* selected & name are always visible */
+		if (strcmp (lowercase, "name") == 0 || strcmp (lowercase, "selected") == 0) {
 			gtk_widget_set_sensitive (menu_item, FALSE);
 		}
 
@@ -1655,6 +1660,10 @@ apply_columns_settings (NautilusListView *list_view,
 						      g_str_equal,
 						      (GDestroyNotify) g_free,
 						      (GDestroyNotify) g_free);
+	if (nautilus_view_get_selection_mode (NAUTILUS_VIEW (list_view))) {
+		g_hash_table_insert (visible_columns_hash, g_strdup ("selected"), g_strdup ("selected"));
+	}
+
 	/* always show name column */
 	g_hash_table_insert (visible_columns_hash, g_strdup ("name"), g_strdup ("name"));
 	if (visible_columns != NULL) {
@@ -2078,7 +2087,11 @@ create_and_set_up_tree_view (NautilusListView *view)
 								 (GtkTreeCellDataFunc) filename_cell_data_func,
 								 view, NULL);
 		} else {
-			cell = gtk_cell_renderer_text_new ();
+			if (!strcmp(name, "selected")) {
+				cell = gtk_cell_renderer_toggle_new ();
+			} else {
+				cell = gtk_cell_renderer_text_new ();
+			}
 			g_object_set (cell,
 				      "xalign", xalign,
 				      "xpad", 5,
@@ -2100,7 +2113,13 @@ create_and_set_up_tree_view (NautilusListView *view)
 			                  G_CALLBACK (column_header_clicked),
 			                  view);
 			
-			gtk_tree_view_column_set_resizable (column, TRUE);
+			if (!strcmp(name, "selected")) {
+				gtk_tree_view_column_set_resizable (column, FALSE);
+				gtk_tree_view_column_set_fixed_width (column, 32);
+			} else {
+				gtk_tree_view_column_set_resizable (column, TRUE);
+			}
+			
 			gtk_tree_view_column_set_sort_order (column, sort_order);
 
 			if (!strcmp (name, "where")) {
@@ -3536,6 +3555,35 @@ list_view_scroll_to_file (NautilusView *view,
 }
 
 static void
+list_view_set_selection_mode (NautilusView *view,
+		              gboolean selection_mode)
+{
+	GList *view_columns, *l;
+	NautilusListView *list_view;
+	GtkTreeViewColumn *col;
+	
+	list_view = NAUTILUS_LIST_VIEW (view);
+	list_view->details->selection_mode = selection_mode;
+
+	view_columns = gtk_tree_view_get_columns (list_view->details->tree_view);
+	for (l = view_columns; l != NULL; l = l->next) {
+		col = GTK_TREE_VIEW_COLUMN (l->data);
+		if (!strcmp("Selected", gtk_tree_view_column_get_title (col))) {
+			gtk_tree_view_column_set_visible (l->data, selection_mode);
+		}
+	}
+}
+
+static gboolean
+list_view_get_selection_mode (NautilusView *view)
+{
+	NautilusListView *list_view;
+	
+	list_view = NAUTILUS_LIST_VIEW (view);
+	return list_view->details->selection_mode;
+}
+
+static void
 list_view_notify_clipboard_info (NautilusClipboardMonitor *monitor,
                                  NautilusClipboardInfo *info,
                                  NautilusListView *view)
@@ -3617,6 +3665,8 @@ nautilus_list_view_class_init (NautilusListViewClass *class)
 	nautilus_view_class->get_view_id = nautilus_list_view_get_id;
 	nautilus_view_class->get_first_visible_file = nautilus_list_view_get_first_visible_file;
 	nautilus_view_class->scroll_to_file = list_view_scroll_to_file;
+	nautilus_view_class->get_selection_mode = list_view_get_selection_mode;
+	nautilus_view_class->set_selection_mode = list_view_set_selection_mode;
 }
 
 static void

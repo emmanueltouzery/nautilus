@@ -292,6 +292,11 @@ struct NautilusViewClass {
 	void           (* scroll_to_file)	  (NautilusView          *view,
 						   const char            *uri);
 
+	void           (* set_selection_mode)     (NautilusView          *view,
+			                           gboolean              selection_mode);
+
+	gboolean       (* get_selection_mode)     (NautilusView          *view);
+
         /* Signals used only for keybindings */
         gboolean (* trash)                         (NautilusView *view);
         gboolean (* delete)                        (NautilusView *view);
@@ -410,5 +415,9 @@ void              nautilus_view_grab_focus                 (NautilusView      *v
 void              nautilus_view_update_menus               (NautilusView      *view);
 
 gboolean          nautilus_view_get_show_hidden_files      (NautilusView      *view);
+
+void              nautilus_view_set_selection_mode         (NautilusView      *view,
+		                                            gboolean          selection_mode);
+gboolean          nautilus_view_get_selection_mode         (NautilusView      *view);
 
 #endif /* NAUTILUS_VIEW_H */

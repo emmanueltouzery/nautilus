@@ -31,6 +31,7 @@
 #include <libnautilus-private/nautilus-module.h>
 
 static const char *default_column_order[] = {
+	"selected",
 	"name",
 	"size",
 	"type",
@@ -50,6 +51,14 @@ get_builtin_columns (void)
 	GList *columns;
 
 	columns = g_list_append (NULL,
+				 g_object_new (NAUTILUS_TYPE_COLUMN,
+					       "name", "selected",
+					       "attribute", "selected",
+					       "label", _("Selected"),
+					       "description", _("Whether the file is selected."),
+					       NULL));
+
+	columns = g_list_append (columns,
 				 g_object_new (NAUTILUS_TYPE_COLUMN,
 					       "name", "name",
 					       "attribute", "name",

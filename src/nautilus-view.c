@@ -715,6 +715,22 @@ nautilus_view_get_selection (NautilusView *view)
 	return NAUTILUS_VIEW_CLASS (G_OBJECT_GET_CLASS (view))->get_selection (view);
 }
 
+void
+nautilus_view_set_selection_mode (NautilusView *view, gboolean selection_mode)
+{
+	g_return_if_fail (NAUTILUS_IS_VIEW (view));
+
+	NAUTILUS_VIEW_CLASS (G_OBJECT_GET_CLASS (view))->set_selection_mode (view, selection_mode);
+}
+
+gboolean
+nautilus_view_get_selection_mode (NautilusView *view)
+{
+	g_return_if_fail (NAUTILUS_IS_VIEW (view));
+
+	return NAUTILUS_VIEW_CLASS (G_OBJECT_GET_CLASS (view))->get_selection_mode (view);
+}
+
 /**
  * nautilus_view_update_menus:
  * 
