@@ -1717,6 +1717,23 @@ apply_columns_settings (NautilusListView *list_view,
 }
 
 static void
+selected_cell_data_func (GtkTreeViewColumn *column,
+			 GtkCellRenderer   *renderer,
+			 GtkTreeModel      *model,
+			 GtkTreeIter       *iter,
+			 NautilusListView        *view)
+{
+	GtkTreeView *tree_view;
+	GtkTreeSelection *tree_selection;
+       
+	tree_view = view->details->tree_view;
+	tree_selection = gtk_tree_view_get_selection (tree_view);
+	g_object_set (G_OBJECT (renderer),
+		      "active", gtk_tree_selection_iter_is_selected (tree_selection, iter),
+		      NULL);
+}
+
+static void
 filename_cell_data_func (GtkTreeViewColumn *column,
 			 GtkCellRenderer   *renderer,
 			 GtkTreeModel      *model,
@@ -2083,8 +2100,18 @@ create_and_set_up_tree_view (NautilusListView *view)
 		} else {
 			if (!strcmp(name, "selected")) {
 				cell = gtk_cell_renderer_toggle_new ();
+				column = gtk_tree_view_column_new_with_attributes (label,
+								   cell, NULL);
+				gtk_tree_view_column_pack_start (column, cell, TRUE);
+				gtk_tree_view_column_set_cell_data_func (column, cell,
+									 (GtkTreeCellDataFunc) selected_cell_data_func,
+									 view, NULL);
 			} else {
 				cell = gtk_cell_renderer_text_new ();
+				column = gtk_tree_view_column_new_with_attributes (label,
+										   cell,
+										   "text", column_num,
+										   NULL);
 			}
 			g_object_set (cell,
 				      "xalign", xalign,
@@ -2092,10 +2119,6 @@ create_and_set_up_tree_view (NautilusListView *view)
 				      NULL);
 			view->details->cells = g_list_append (view->details->cells,
 							      cell);
-			column = gtk_tree_view_column_new_with_attributes (label,
-									   cell,
-									   "text", column_num,
-									   NULL);
 			gtk_tree_view_append_column (view->details->tree_view, column);
 			gtk_tree_view_column_set_sort_column_id (column, column_num);
 			g_hash_table_insert (view->details->columns, 
