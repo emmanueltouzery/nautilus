@@ -1549,6 +1549,9 @@ get_visible_columns_hash (NautilusListView *list_view, char **visible_columns)
 			                     g_ascii_strdown (visible_columns[i], -1));
 		}
 	}
+	if (!nautilus_view_get_selection_mode (NAUTILUS_VIEW (list_view))) {
+		g_hash_table_remove (visible_columns_hash, g_strdup ("selected"));
+	}
 	return visible_columns_hash;
 }
 
@@ -2017,7 +2020,7 @@ create_and_set_up_tree_view (NautilusListView *view)
 		column_num = nautilus_list_model_add_column (view->details->model,
 						       nautilus_column);
 
-		/* Created the name column specially, because it
+		/* Create the name column specially, because it
 		 * has the icon in it.*/
 		if (!strcmp (name, "name")) {
 			/* Create the file name column */
@@ -3561,6 +3564,7 @@ list_view_set_selection_mode (NautilusView *view,
 		col = GTK_TREE_VIEW_COLUMN (l->data);
 		if (!strcmp("Selected", gtk_tree_view_column_get_title (col))) {
 			gtk_tree_view_column_set_visible (l->data, selection_mode);
+			gtk_tree_view_move_column_after (list_view->details->tree_view, l->data, NULL);
 		}
 	}
 }
