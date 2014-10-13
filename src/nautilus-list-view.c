@@ -314,9 +314,10 @@ activate_selected_items_alternate (NautilusListView *view,
 }
 
 static gboolean
-button_event_modifies_selection (GdkEventButton *event)
+button_event_modifies_selection (NautilusListView *list_view, GdkEventButton *event)
 {
-	return (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) != 0;
+	return (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) != 0
+		|| list_view->details->selection_mode;
 }
 
 static int
@@ -343,7 +344,7 @@ nautilus_list_view_did_not_drag (NautilusListView *view,
 		    && ((event->state & GDK_CONTROL_MASK) != 0 ||
 			(event->state & GDK_SHIFT_MASK) == 0)
 		    && view->details->row_selected_on_button_down) {
-			if (!button_event_modifies_selection (event)) {
+			if (!button_event_modifies_selection (view, event)) {
 				gtk_tree_selection_unselect_all (selection);
 				gtk_tree_selection_select_path (selection, path);
 			} else {
@@ -352,7 +353,7 @@ nautilus_list_view_did_not_drag (NautilusListView *view,
 		}
 
 		if ((get_click_policy () == NAUTILUS_CLICK_POLICY_SINGLE)
-		    && !button_event_modifies_selection(event)) {
+		    && !button_event_modifies_selection(view, event)) {
 			if (event->button == 1) {
 				activate_selected_items (view);
 			} else if (event->button == 2) {
@@ -761,7 +762,7 @@ button_press_callback (GtkWidget *widget, GdkEventButton *event, gpointer callba
 		if (!on_expander &&
 		    view->details->double_click_path[1] &&
 		    gtk_tree_path_compare (view->details->double_click_path[0], view->details->double_click_path[1]) == 0) {
-			if ((event->button == 1) && button_event_modifies_selection (event)) {
+			if ((event->button == 1) && button_event_modifies_selection (view, event)) {
 				file = nautilus_list_model_file_for_path (view->details->model, path);
 				if (file != NULL) {
 					activate_selected_items_alternate (view, file, TRUE);
@@ -795,7 +796,7 @@ button_press_callback (GtkWidget *widget, GdkEventButton *event, gpointer callba
 			if (path_selected) {
 				call_parent = on_expander;
 				view->details->ignore_button_release = on_expander;
-			} else if ((event->state & GDK_CONTROL_MASK) != 0) {
+			} else if ((event->state & GDK_CONTROL_MASK) != 0 || view->details->selection_mode) {
 				GList *selected_rows, *l;
 
 				call_parent = FALSE;
