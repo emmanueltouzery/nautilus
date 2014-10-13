@@ -342,8 +342,6 @@ action_toggle_selection_mode (GtkAction *action,
 	GtkStyleContext *header_style_context;
 	NautilusWindowSlot *slot;
 	NautilusView *view;
-	NautilusCanvasView *canvas_view;
-	NautilusCanvasContainer *canvas_container;
 
 	active = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action));
 
@@ -390,9 +388,17 @@ action_view_radio_changed (GtkRadioAction *action,
 {
 	const gchar *name;
 	NautilusWindowSlot *slot;
+	GtkToggleAction *selectionModeAction;
 
 	name = gtk_action_get_name (GTK_ACTION (current));
 	slot = nautilus_window_get_active_slot (window);
+
+	/* reset the selection mode when changing grid<->list */
+	selectionModeAction = GTK_TOGGLE_ACTION (gtk_action_group_get_action (window->details->main_action_group,
+			                                   NAUTILUS_ACTION_SELECTION_MODE));
+	if (gtk_toggle_action_get_active (selectionModeAction)) {
+		gtk_toggle_action_set_active (selectionModeAction, FALSE);
+	}
 
 	if (g_strcmp0 (name, NAUTILUS_ACTION_VIEW_LIST) == 0) {
 		nautilus_window_slot_set_content_view (slot, NAUTILUS_LIST_VIEW_ID);
