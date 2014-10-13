@@ -1051,6 +1051,30 @@ subdirectory_unloaded_callback (NautilusListModel *model,
 	nautilus_view_remove_subdirectory (NAUTILUS_VIEW (view), directory);
 }
 
+static void
+set_cursor_handle_selection (NautilusView *view, GtkTreeView *tree_view, GtkTreePath *path)
+{
+	GtkTreeSelection *selection;
+	GList *selected_rows, *l;
+
+	/* save the selection */
+	selection = gtk_tree_view_get_selection (tree_view);
+	selected_rows = gtk_tree_selection_get_selected_rows (selection, NULL);
+	
+	/* this selects the previous path */
+	gtk_tree_view_set_cursor (tree_view, path, NULL, FALSE);
+
+	if (NAUTILUS_LIST_VIEW (view)->details->selection_mode) {
+		/* So restore the selection */
+		gtk_tree_selection_unselect_all (selection);
+		for (l = selected_rows; l != NULL; l = l->next) {
+			gtk_tree_selection_select_path (selection, l->data);
+		}
+	}
+
+	g_list_free_full (selected_rows, (GDestroyNotify) gtk_tree_path_free);
+}
+
 static gboolean
 key_press_callback (GtkWidget *widget, GdkEventKey *event, gpointer callback_data)
 {
@@ -1059,6 +1083,7 @@ key_press_callback (GtkWidget *widget, GdkEventKey *event, gpointer callback_dat
 	gboolean handled;
 	GtkTreeView *tree_view;
 	GtkTreePath *path;
+	GtkTreeSelection *selection;
 
 	tree_view = GTK_TREE_VIEW (widget);
 
@@ -1114,10 +1139,38 @@ key_press_callback (GtkWidget *widget, GdkEventKey *event, gpointer callback_dat
 		break;
 	case GDK_KEY_Return:
 	case GDK_KEY_KP_Enter:
-		if ((event->state & GDK_SHIFT_MASK) != 0) {
+		if (NAUTILUS_LIST_VIEW (view)->details->selection_mode) {
+			gtk_tree_view_get_cursor (tree_view, &path, NULL);
+			if (path) {
+				selection = gtk_tree_view_get_selection (tree_view);
+				if (gtk_tree_selection_path_is_selected(selection, path)) {
+					gtk_tree_selection_unselect_path (selection, path);
+				} else {
+					gtk_tree_selection_select_path (selection, path);
+				}
+			}
+		} else if ((event->state & GDK_SHIFT_MASK) != 0) {
 			activate_selected_items_alternate (NAUTILUS_LIST_VIEW (view), NULL, TRUE);
 		} else {
 			activate_selected_items (NAUTILUS_LIST_VIEW (view));
+		}
+		handled = TRUE;
+		break;
+	case GDK_KEY_Up:
+	case GDK_KEY_KP_Up:
+		gtk_tree_view_get_cursor (tree_view, &path, NULL);
+		if (path) {
+			gtk_tree_path_prev (path);
+			set_cursor_handle_selection (view, tree_view, path);
+		}
+		handled = TRUE;
+		break;
+	case GDK_KEY_Down:
+	case GDK_KEY_KP_Down:
+		gtk_tree_view_get_cursor (tree_view, &path, NULL);
+		if (path) {
+			gtk_tree_path_next (path);
+			set_cursor_handle_selection (view, tree_view, path);
 		}
 		handled = TRUE;
 		break;
