@@ -3579,6 +3579,10 @@ list_view_set_selection_mode (NautilusView *view,
 	GList *view_columns, *l;
 	NautilusListView *list_view;
 	GtkTreeViewColumn *col;
+
+	/* in single click mode, the selection makes sense only when in selection mode.
+	 * clear the selection when going in or out of the selection mode. */
+	nautilus_view_set_selection (view, NULL);
 	
 	list_view = NAUTILUS_LIST_VIEW (view);
 	list_view->details->selection_mode = selection_mode;
