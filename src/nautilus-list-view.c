@@ -2156,7 +2156,6 @@ create_and_set_up_tree_view (NautilusListView *view)
 				cell = gtk_cell_renderer_toggle_new ();
 				column = gtk_tree_view_column_new_with_attributes (label,
 								   cell, NULL);
-				gtk_tree_view_column_pack_start (column, cell, TRUE);
 				gtk_tree_view_column_set_cell_data_func (column, cell,
 									 (GtkTreeCellDataFunc) selected_cell_data_func,
 									 view, NULL);
